@@ -1,0 +1,23 @@
+{
+  "name": "newtimeseries",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"node listener/listener.js\" \"node emitter/emitter.js\" \"cd frontend && http-server\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.2.1",
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "http-server": "^14.1.1",
+    "mongoose": "^7.4.5",
+    "nodemon": "^3.0.1",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2"
+  }
+}

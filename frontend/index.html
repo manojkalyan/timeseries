@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encrypted Timeseries Frontend</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Encrypted Timeseries Frontend</h1>
+  <p id="success-rate">Success Rate: 0%</p> <!-- Success rate display -->
+  <div id="message-container">
+    <!-- Messages will be displayed here -->
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io.connect('http://localhost:3000');
+    const messageContainer = document.getElementById('message-container');
+    const successRateElement = document.getElementById('success-rate');
+
+    let totalMessagesSent = 0;
+    let totalMessagesReceived = 0;
+
+    socket.on('connect', () => {
+      console.log('Connected to backend');
+      fetchMessages(); // Fetch messages when connected
+    });
+
+    socket.on('newMessage', message => {
+      totalMessagesReceived++; // Increment totalMessagesReceived
+      displayMessage(message);
+      updateSuccessRate(); // Update the success rate when a new message is received
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from backend');
+    });
+
+    function fetchMessages() {
+      fetch('/api/messages')
+        .then(response => response.json())
+        .then(messages => {
+          messages.forEach(message => {
+            displayMessage(message);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching messages:', error);
+        });
+    }
+
+    function displayMessage(message) {
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message';
+      messageElement.innerHTML = `
+        <strong>Name:</strong> ${message.name}<br>
+        <strong>Origin:</strong> ${message.origin}<br>
+        <strong>Destination:</strong> ${message.destination}<br>
+        <strong>Timestamp:</strong> ${new Date(message.timestamp).toLocaleString()}<br>
+        <hr>
+      `;
+      messageContainer.appendChild(messageElement);
+    }
+
+    function updateSuccessRate() {
+      const successRate = totalMessagesReceived / totalMessagesSent;
+      successRateElement.textContent = `Success Rate: ${Math.round(successRate * 100)}%`;
+    }
+  </script>
+</body>
+</html>
