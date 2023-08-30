@@ -8,7 +8,7 @@
 </head>
 <body>
   <h1>Encrypted Timeseries Frontend</h1>
-  <p id="success-rate">Success Rate: 0%</p> <!-- Success rate display -->
+  <p id="success-rate">Success Rate: 0%</p> <!-- Success rate displayed at the top -->
   <div id="message-container">
     <!-- Messages will be displayed here -->
   </div>
@@ -18,19 +18,29 @@
     const socket = io.connect('http://localhost:3000');
     const messageContainer = document.getElementById('message-container');
     const successRateElement = document.getElementById('success-rate');
-
-    let totalMessagesSent = 0;
     let totalMessagesReceived = 0;
+    let totalMessagesFailed = 0;
 
     socket.on('connect', () => {
       console.log('Connected to backend');
       fetchMessages(); // Fetch messages when connected
     });
 
-    socket.on('newMessage', message => {
-      totalMessagesReceived++; // Increment totalMessagesReceived
-      displayMessage(message);
-      updateSuccessRate(); // Update the success rate when a new message is received
+    socket.on('newMessage', messages => {
+      messages.forEach(message => {
+        totalMessagesReceived++;
+        displayMessage(message);
+      });
+      updateSuccessRate();
+    });
+
+    socket.on('failedMessage', messages => {
+      totalMessagesFailed += messages.length;
+      updateSuccessRate();
+    });
+
+    socket.on('successRate', rate => {
+      successRateElement.textContent = `Success Rate: ${rate.toFixed(2)}%`;
     });
 
     socket.on('disconnect', () => {
@@ -64,8 +74,8 @@
     }
 
     function updateSuccessRate() {
-      const successRate = totalMessagesReceived / totalMessagesSent;
-      successRateElement.textContent = `Success Rate: ${Math.round(successRate * 100)}%`;
+      const successRate = (totalMessagesReceived / (totalMessagesReceived + totalMessagesFailed)) * 100;
+      successRateElement.textContent = `Success Rate: ${successRate.toFixed(2)}%`;
     }
   </script>
 </body>

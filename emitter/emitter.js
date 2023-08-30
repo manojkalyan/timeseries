@@ -20,8 +20,7 @@ function encryptMessage(message, secretKey) {
   const cipher = crypto.createCipheriv('aes-256-ctr', secretKey, iv);
   let encryptedMessage = cipher.update(JSON.stringify(message), 'utf8', 'hex');
   encryptedMessage += cipher.final('hex');
-    console.log(encryptedMessage)
-
+  // console.log(encryptedMessage)
   return `${iv.toString('hex')}:${encryptedMessage}`;
 }
 
@@ -41,6 +40,7 @@ function generateRandomMessage() {
 
 let messagesSent = 0;
 const totalMessages = data.names.length; // Change this to the desired length
+let interval; // Declare interval variable here
 
 function sendMessages() {
   if (messagesSent >= totalMessages) {
@@ -61,8 +61,9 @@ function sendMessages() {
 
 socket.on('connect', () => {
   console.log('Emitter connected');
-  const interval = setInterval(sendMessages, 10000); // Send messages every 10 seconds
+  interval = setInterval(sendMessages, 10000); // Assign interval here
 });
+
 socket.on('disconnect', () => {
   console.log('Emitter disconnected');
 });

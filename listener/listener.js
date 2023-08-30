@@ -9,7 +9,8 @@ const path = require('path'); // Import the path module
 const app = express();
 const server = http.createServer(app);
 const socketServer = io(server);
-
+app.set('view engine', 'ejs'); // Set the view engine to EJS
+app.set('views', './views');
 mongoose.connect('mongodb://127.0.0.1/mynewdb');
 const db = mongoose.connection;
 
@@ -78,6 +79,9 @@ socketServer.on('connection', socket => {
   console.log('Emitter connected');
 
   socket.on('encryptedMessages', async encryptedMessages => {
+    const successMessages = [];
+    const failureMessages = [];
+
     for (const encryptedMessage of encryptedMessages) {
       const decryptedMessage = decryptMessage(encryptedMessage, encryptionKey);
 
@@ -90,12 +94,20 @@ socketServer.on('connection', socket => {
 
         try {
           await saveMessageToDB(messageWithTimestamp);
-          socketServer.emit('newMessage', messageWithTimestamp); // Broadcast to all connected clients
+          successMessages.push(messageWithTimestamp);
         } catch (error) {
           console.error('Error saving message:', error);
+          failureMessages.push(encryptedMessage);
         }
+      } else {
+        failureMessages.push(encryptedMessage);
       }
     }
+
+    const successRate = (successMessages.length / encryptedMessages.length) * 100;
+    socketServer.emit('newMessage', successMessages); // Broadcast successful messages to all connected clients
+    socketServer.emit('failedMessage', failureMessages); // Broadcast failed messages to all connected clients
+    socketServer.emit('successRate', successRate); // Broadcast success rate to all connected clients
   });
 
   socket.on('disconnect', () => {
